@@ -62,6 +62,11 @@
   .face.bk{transform:rotateY(180deg)}
   .layer{position:absolute;inset:0}
   .layer svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 14px 12px rgba(0,0,0,.14))}
+  .layer img{width:100%;height:100%;display:block;object-fit:contain;object-position:50% 0;
+    filter:drop-shadow(0 14px 12px rgba(0,0,0,.14));user-select:none;-webkit-user-drag:none}
+  .layer .hg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+  .layer .hg.top{z-index:2}
+  .layer img{position:relative;z-index:1}
   .over{clip-path:inset(0 0 100% 0)}
   .over.wipe{clip-path:inset(0 0 0 0);transition:clip-path .75s cubic-bezier(.5,0,.2,1)}
   .c{fill:var(--c)} .t{fill:var(--t)}
@@ -168,29 +173,48 @@
 /* =====================  EDIT THIS PART  ===================== */
 const WHATSAPP_NUMBER = "919999999999";  // your number, country code first, no + or spaces
 
-/* type: hoodie | tank | shirt | track | tee
+/* ---- PHOTOS ----
+   Put your photos in a folder called  photos  next to index.html.
+   Name each file like this:   id-color-front.png   and   id-color-back.png
+   Example for the first piece below:  photos/hoodie-teal-front.png  and  photos/hoodie-teal-back.png
+   (id comes from the piece, color is the color name in lowercase)
+   If a photo is missing, the page shows the drawn version instead, so nothing breaks.            */
+const USE_PHOTOS   = true;
+const PHOTO_FOLDER = "photos";
+const PHOTO_EXT    = "png";      // png, jpg or webp - must be the same for all your photos
+const DRAW_HANGER  = false;     // true = draw a hanger on top of your photos (use if your photos have no hanger)
+const WHITE_BG     = false;       // true = your photos have a plain white background (it gets hidden)
+                                 // false = your photos are cut out with a transparent background
+
+/* id: short name used in the photo file names
+   frontOnly:true  = you only have a front photo for this piece (hides the Back button)
+   type: hoodie | tank | shirt | track | tee   (only used for the drawn version)
    colors: first one shows by default. Each color is also a hanging tag you can tap.
    back: text shown on the back of the piece                                   */
 const PRODUCTS = [
   { id:"c1", name:"STRU Cloth 1", price:"$00", type:"hoodie", back:"STRU",
-    colors:[ { n:"Black", c:"#111111", t:"#ffffff",
-               front:"photos/1-front.png", back:"photos/1-back.png" } ] },
+    colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/1f.png",  back:"photos/1b.png" },
+             { n:"White", c:"#efefef", t:"#111111", front:"photos/1wf.png", back:"photos/1wb.png" } ] },
 
   { id:"c2", name:"STRU Cloth 2", price:"$00", type:"tank", back:"STRU",
-    colors:[ { n:"Black", c:"#111111", t:"#ffffff",
-               front:"photos/2-front.png", back:"photos/2-back.png" } ] },
+    colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/2f.png",  back:"photos/2b.png" },
+             { n:"White", c:"#efefef", t:"#111111", front:"photos/2wf.png", back:"photos/2wb.png" } ] },
 
   { id:"c3", name:"STRU Cloth 3", price:"$00", type:"shirt", back:"STRU",
-    colors:[ { n:"Black", c:"#111111", t:"#ffffff",
-               front:"photos/3-front.png", back:"photos/3-back.png" } ] },
+    colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/3f.png",  back:"photos/3b.png" },
+             { n:"White", c:"#efefef", t:"#111111", front:"photos/3wf.png", back:"photos/3wb.png" } ] },
 
   { id:"c4", name:"STRU Cloth 4", price:"$00", type:"track", back:"STRU",
-    colors:[ { n:"Black", c:"#111111", t:"#ffffff",
-               front:"photos/4-front.png", back:"photos/4-back.png" } ] },
+    colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/4f.png",  back:"photos/4b.png" },
+             { n:"White", c:"#efefef", t:"#111111", front:"photos/4wf.png", back:"photos/4wb.png" } ] },
 
   { id:"c5", name:"STRU Cloth 5", price:"$00", type:"tee", back:"STRU",
-    colors:[ { n:"Black", c:"#111111", t:"#ffffff",
-               front:"photos/5-front.png", back:"photos/5-back.png" } ] }
+    colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/5f.png",  back:"photos/5b.png" },
+             { n:"White", c:"#efefef", t:"#111111", front:"photos/5wf.png", back:"photos/5wb.png" } ] },
+
+  { id:"c6", name:"STRU Cloth 6", price:"$00", type:"hoodie", back:"STRU",
+    colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/6f.png",  back:"photos/6b.png" },
+             { n:"White", c:"#efefef", t:"#111111", front:"photos/6wf.png", back:"photos/6wb.png" } ] }
 ];
 /* ==========================================================  */
 
@@ -287,6 +311,73 @@ function svg(p, ci, side){
     <path class="c" d="${sil}"/><path d="${sil}" fill="url(#${id})"/>
     ${k.det(b, p)}${HANGER}</svg>`;
 }
+function photoSrc(p, ci, side){
+  const col = p.colors[ci];
+  if (col[side]) return col[side];                       // optional exact path on the color
+  if (!USE_PHOTOS || !p.id) return null;
+  const sd = (side === "back" && p.frontOnly) ? "front" : side;
+  return `${PHOTO_FOLDER}/${p.id}-${col.n.toLowerCase()}-${sd}.${PHOTO_EXT}`;
+}
+/* tries several likely file names for every photo, so it works whichever way the files were uploaded */
+function variants(path){
+  const i = path.lastIndexOf("/"), f = path.slice(i + 1);
+  const dir = i >= 0 ? path.slice(0, i).replace(/^\.\//, "") : "";
+  const out = [path];
+  if (dir) out.push(`./${dir}:${f}`, `./${dir}%3A${f}`);
+  out.push(`./${f}`);
+  return [...new Set(out)];
+}
+const enc = a => encodeURIComponent(JSON.stringify(a));
+function setSrc(img, path){ const v = variants(path); img.dataset.alts = enc(v.slice(1)); img.src = v[0]; }
+function art(p, ci, side){
+  const src = photoSrc(p, ci, side);
+  if (!src) return svg(p, ci, side);
+  const v = variants(src);
+  const st = DRAW_HANGER ? ' style="height:84%;margin-top:16%"' : "";
+  /* thin wire from the rail to the clothes: always drawn, sits behind the photo so it never doubles up */
+  const wire = DRAW_HANGER ? "" : `<svg class="hg" viewBox="0 0 200 250" aria-hidden="true"><path d="M100 0V14" stroke="#9a9a9a" stroke-width="2" fill="none"/></svg>`;
+  const hg = DRAW_HANGER ? `<svg class="hg top" viewBox="0 0 200 250" aria-hidden="true">${HANGER}</svg>` : "";
+  return `${wire}<img src="${v[0]}" alt="" draggable="false"${st} data-alts="${enc(v.slice(1))}" data-p="${PRODUCTS.indexOf(p)}" data-ci="${ci}" data-side="${side}" onload="cutout(this)" onerror="photoFail(this)">${hg}`;
+}
+/* turns the white background of a photo transparent (only the white that touches the edges) */
+function cutout(img){
+  if (!WHITE_BG || img.dataset.cut) return;
+  img.dataset.cut = "1";
+  try{
+    const sc = Math.min(1, 1100 / Math.max(img.naturalWidth, img.naturalHeight));
+    const W = Math.round(img.naturalWidth * sc), H = Math.round(img.naturalHeight * sc);
+    const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const cx = cv.getContext("2d", { willReadFrequently:true }); cx.drawImage(img, 0, 0, W, H);
+    const im = cx.getImageData(0, 0, W, H), d = im.data, N = 236;
+    const white = i => d[i] >= N && d[i+1] >= N && d[i+2] >= N;
+    const seen = new Uint8Array(W * H), q = [];
+    const push = (x, y) => { const k = y * W + x; if (!seen[k] && white(k * 4)) { seen[k] = 1; q.push(k); } };
+    for (let x = 0; x < W; x++){ push(x, 0); push(x, H - 1); }
+    for (let y = 0; y < H; y++){ push(0, y); push(W - 1, y); }
+    while (q.length){
+      const k = q.pop(), x = k % W, y = (k / W) | 0;
+      if (x > 0) push(x - 1, y); if (x < W - 1) push(x + 1, y);
+      if (y > 0) push(x, y - 1); if (y < H - 1) push(x, y + 1);
+    }
+    for (let k = 0; k < seen.length; k++) if (seen[k]) d[k * 4 + 3] = 0;
+    for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++){      // soften the cut edge
+      const k = y * W + x;
+      if (!seen[k] && (seen[k-1] || seen[k+1] || seen[k-W] || seen[k+W])) d[k * 4 + 3] = 170;
+    }
+    cx.putImageData(im, 0, 0);
+    img.src = cv.toDataURL("image/png");
+  }catch(e){ /* opened as a plain file on your computer: the browser blocks this. It works once the site is on GitHub. */ }
+}
+function photoFail(img){
+  const d = img.dataset, p = PRODUCTS[d.p];
+  const alts = JSON.parse(decodeURIComponent(d.alts || "%5B%5D"));
+  if (alts.length){ const n = alts.shift(); d.alts = enc(alts); img.src = n; return; }   // try the next file name
+  if (+d.ci > 0 && !d.fb){                       // this color has no photo yet: show the first color's photo instead
+    d.fb = "1"; const alt = photoSrc(p, 0, d.side);
+    if (alt){ setSrc(img, alt); return; }
+  }
+  img.outerHTML = svg(p, +d.ci, d.side);
+}
 const ink = hex => { const n = parseInt(hex.slice(1),16); return ((n>>16)*299 + (n>>8&255)*587 + (n&255)*114)/1000 > 150 ? "#111" : "#fff"; };
 const setVars = (el, col) => { el.style.setProperty("--c", col.c); el.style.setProperty("--t", col.t); };
 
@@ -300,7 +391,7 @@ PRODUCTS.forEach((p, i) => {
   const el = document.createElement("div");
   el.className = "item"; el.tabIndex = 0; el.setAttribute("role","button"); el.setAttribute("aria-label", p.name);
   const face = (side, cls) => `<div class="face ${cls}" data-side="${side}">
-      <div class="layer base">${svg(p,0,side)}</div><div class="layer over"></div></div>`;
+      <div class="layer base">${art(p,0,side)}</div><div class="layer over"></div></div>`;
   const tags = p.colors.map((col, ci) => `
     <button class="tag" type="button" data-ci="${ci}" aria-pressed="${ci===0}" aria-label="Color ${col.n}" style="--tc:${col.c};--ti:${ink(col.c)}">
       <i class="string"></i><span class="body"><span>${col.n.toUpperCase()}</span></span></button>`).join("");
@@ -330,6 +421,7 @@ function render(){
   const bk = state[active].side === "back";
   document.getElementById("bFront").setAttribute("aria-pressed", !bk);
   document.getElementById("bBack").setAttribute("aria-pressed", bk);
+  document.querySelector(".seg").style.visibility = p.frontOnly ? "hidden" : "visible";
   items[active].querySelectorAll(".tag").forEach((t, ci) => t.setAttribute("aria-pressed", ci === state[active].ci));
 }
 function setActive(i){ if (i === active) return; active = i; render(); }
@@ -351,10 +443,10 @@ function setColor(i, ci){
   items[i].querySelectorAll(".face").forEach(f => {
     const side = f.dataset.side, base = f.querySelector(".base"), over = f.querySelector(".over");
     over.classList.remove("wipe"); over.style.transition = "none";
-    over.innerHTML = svg(p, ci, side); setVars(over, col);
+    over.innerHTML = art(p, ci, side); setVars(over, col);
     void over.offsetWidth; over.style.transition = ""; over.classList.add("wipe");
     setTimeout(() => {
-      base.innerHTML = svg(p, ci, side); setVars(base, col);
+      base.innerHTML = art(p, ci, side); setVars(base, col);
       over.style.transition = "none"; over.classList.remove("wipe");
     }, 780);
   });
