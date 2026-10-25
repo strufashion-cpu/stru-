@@ -182,7 +182,8 @@ const WHATSAPP_NUMBER = "919999999999";  // your number, country code first, no 
 const USE_PHOTOS   = true;
 const PHOTO_FOLDER = "photos";
 const PHOTO_EXT    = "png";      // png, jpg or webp - must be the same for all your photos
-const DRAW_HANGER  = false;     // true = draw a hanger on top of your photos (use if your photos have no hanger)
+const HANGER = `<path d="M100 0V12" stroke="#9a9a9a" stroke-width="2" fill="none"/>
+  <path d="M100 12V26M100 26L64 112M100 26L136 112" stroke="#7b4a2c" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;    // true = draw a hanger on top of your photos (use if your photos have no hanger)
 const WHITE_BG     = false;       // true = your photos have a plain white background (it gets hidden)
                                  // false = your photos are cut out with a transparent background
 
