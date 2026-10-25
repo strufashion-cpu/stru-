@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STRU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cw:clamp(128px,23vw,230px);           /* garment width */
+    --closed:calc(var(--cw)*.2);            /* width of an edge-on garment */
+    --open:calc(var(--cw)*1.02);            /* width of the open garment (idle) */
+    --sel:calc(var(--cw)*1.5);              /* width of the open garment (zoomed) */
+    --ease:cubic-bezier(.65,0,.25,1);
+    --ink:#111; --mute:#9a9a9a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%}
+  body{
+    font-family:"Archivo","Helvetica Neue",Arial,sans-serif;color:var(--ink);
+    background:radial-gradient(ellipse 75% 60% at 50% 52%,#fbfbfb 0%,#ececec 62%,#e4e4e4 100%);
+    min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;
+  }
+  header{padding:30px 0 0;text-align:center}
+  .brand{font-weight:900;font-stretch:125%;font-size:20px;letter-spacing:.06em}
+  main{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:40px}
+
+  .closet{position:relative;width:100%}
+  .rail{
+    position:absolute;top:0;left:9%;right:9%;height:3px;border-radius:3px;
+    background:linear-gradient(#c9c9c9,#8f8f8f);transition:opacity .7s;
+  }
+  .rail::before,.rail::after{content:"";position:absolute;top:-3px;width:1px;height:12px;background:#aaa}
+  .rail::before{left:0}.rail::after{right:0}
+  .detail .rail{opacity:0}
+
+  .row{position:relative;display:flex;justify-content:center;perspective:1500px;perspective-origin:50% 25%;height:calc(var(--cw)*1.38);transition:height .95s var(--ease)}
+  .detail .row{height:calc(var(--cw)*1.8)}
+  .cluster{display:flex;align-items:flex-start;height:100%}
+
+  .item{
+    position:relative;width:var(--closed);height:100%;cursor:pointer;outline:none;
+    transition:width .95s var(--ease),filter .8s,opacity .8s;
+  }
+  .item.open{width:var(--open)}
+  .detail .item.open{width:var(--sel);z-index:3}
+  .detail .item:not(.open){filter:blur(9px);opacity:.55}
+  .item:focus-visible .card{outline:2px solid #111;outline-offset:6px}
+
+  .card{
+    position:absolute;left:50%;top:0;width:var(--cw);height:calc(var(--cw)*1.25);margin-left:calc(var(--cw)/-2);
+    transform-origin:50% 0;transform-style:preserve-3d;
+    transform:rotateY(82deg) scale(1);
+    transition:transform .95s var(--ease);
+  }
+  .item.open .card{transform:rotateY(0deg) scale(1)}
+  .detail .item.open .card{transform:rotateY(0deg) scale(1.32)}
+  .detail .item.open.back .card{transform:rotateY(180deg) scale(1.32)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .face.bk{transform:rotateY(180deg)}
+  .layer{position:absolute;inset:0}
+  .layer svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 14px 12px rgba(0,0,0,.14))}
+  .over{clip-path:inset(0 0 100% 0)}
+  .over.wipe{clip-path:inset(0 0 0 0);transition:clip-path .75s cubic-bezier(.5,0,.2,1)}
+  .c{fill:var(--c)} .t{fill:var(--t)}
+  .ts{fill:none;stroke:var(--t);stroke-linecap:round;stroke-linejoin:round}
+  .fx{font-family:"Archivo","Arial Black",sans-serif;font-weight:900;font-stretch:125%}
+  .sc{font-family:"Pacifico","Brush Script MT",cursive}
+
+  /* hanging colour tags */
+  .tags{
+    position:absolute;top:0;left:50%;margin-left:calc(var(--cw)*.74);display:flex;gap:7px;
+    opacity:0;pointer-events:none;transition:opacity .5s;z-index:4
+  }
+  .detail .item.open .tags{opacity:1;pointer-events:auto;transition-delay:.55s}
+  .tag{
+    border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;
+    transform-origin:50% 0;animation:sway 4.5s ease-in-out infinite;
+  }
+  .tag:nth-child(2){animation-delay:-1.8s}
+  .tag .string{width:1px;height:calc(var(--cw)*.2);background:#888}
+  .tag .body{
+    position:relative;width:22px;height:60px;border-radius:4px 4px 5px 5px;background:var(--tc);color:var(--ti);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 5px 8px rgba(0,0,0,.18);
+    transition:transform .3s;
+  }
+  .tag .body::before{content:"";position:absolute;top:4px;width:5px;height:5px;border-radius:50%;background:#e9e9e9;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  .tag .body span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:8px;font-weight:800;letter-spacing:.18em;margin-top:8px}
+  .tag[aria-pressed="true"] .body{transform:translateY(8px)}
+  .tag:focus-visible .body{outline:2px solid #111;outline-offset:3px}
+  @keyframes sway{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+
+  /* captions */
+  .info{display:grid;margin-top:6px;min-height:110px;justify-items:center;align-items:start}
+  .info>div{grid-area:1/1;display:flex;flex-direction:column;align-items:center;transition:opacity .5s}
+  .i-idle{gap:14px}
+  .i-detail{gap:12px;opacity:0;pointer-events:none}
+  .detail .i-idle{opacity:0;pointer-events:none}
+  .detail .i-detail{opacity:1;pointer-events:auto;transition-delay:.35s}
+  .cap{font-size:11px;color:var(--mute);letter-spacing:.02em;transition:opacity .4s}
+  .pill{
+    font-size:9px;font-weight:700;letter-spacing:.12em;text-decoration:none;color:var(--ink);
+    border:1px solid #555;border-radius:999px;padding:6px 16px;transition:background .25s,color .25s
+  }
+  .pill:hover{background:var(--ink);color:#fff}
+  .i-detail h2{font-size:13px;font-weight:900;font-stretch:125%;letter-spacing:.06em;text-transform:uppercase;text-align:center}
+  .seg{display:flex;border:1px solid #555;border-radius:999px;padding:2px}
+  .seg button{
+    border:0;background:none;font:inherit;font-size:8px;font-weight:800;letter-spacing:.14em;color:var(--mute);
+    padding:5px 14px;border-radius:999px;cursor:pointer;transition:background .3s,color .3s
+  }
+  .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .link{font-size:8px;font-weight:700;letter-spacing:.14em;color:#888;text-decoration:none;border-bottom:1px solid #aaa;padding-bottom:2px}
+  .link:hover{color:var(--ink);border-color:var(--ink)}
+
+  .nav,.x{
+    position:absolute;border:1px solid #bdbdbd;background:rgba(255,255,255,.65);color:#444;border-radius:50%;
+    width:34px;height:34px;font-size:14px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .5s,background .2s;z-index:6
+  }
+  .detail .nav,.detail .x{opacity:1;pointer-events:auto}
+  .nav:hover,.x:hover{background:#fff}
+  .nav{top:calc(var(--cw)*.55)}
+  #prev{left:2.5%}#next{right:2.5%}
+  .x{top:-34px;right:3%}
+
+  @media (max-width:560px){
+    :root{--cw:clamp(118px,34vw,170px)}
+    .tags{margin-left:calc(var(--cw)*.62)}
+    .nav{width:30px;height:30px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .card,.item,.over.wipe{transition-duration:.01s}
+    .tag{animation:none}
+  }
+</style>
+</head>
+<body>
+<header><div class="brand">STRU</div></header>
+
+<main>
+  <div class="closet" id="closet">
+    <div class="rail" aria-hidden="true"></div>
+    <div class="row" id="row"><div class="cluster" id="cluster"></div></div>
+    <button class="nav" id="prev" aria-label="Previous piece" type="button">&#8592;</button>
+    <button class="nav" id="next" aria-label="Next piece" type="button">&#8594;</button>
+    <button class="x" id="close" aria-label="Back to all pieces" type="button">&#215;</button>
+
+    <div class="info">
+      <div class="i-idle">
+        <p class="cap" id="cap"></p>
+        <a class="pill" id="pill" href="#" target="_blank" rel="noopener">SEE AVAILABILITY</a>
+      </div>
+      <div class="i-detail">
+        <h2 id="title"></h2>
+        <div class="seg" role="group" aria-label="View">
+          <button type="button" id="bFront" aria-pressed="true">FRONT</button>
+          <button type="button" id="bBack" aria-pressed="false">BACK</button>
+        </div>
+        <a class="link" id="link" href="#" target="_blank" rel="noopener">SEE AVAILABILITY &#8599;</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* =====================  EDIT THIS PART  ===================== */
+const WHATSAPP_NUMBER = "919999999999";  // your number, country code first, no + or spaces
+
+/* type: hoodie | tank | shirt | track | tee
+   colors: first one shows by default. Each color is also a hanging tag you can tap.
+   back: text shown on the back of the piece                                   */
+const PRODUCTS = [
+  { name:"STRU Heavy Hoodie",  price:"$55", type:"hoodie", back:"STRU",
+    colors:[{n:"Teal",  c:"#3d7391", t:"#c9dde8"},{n:"Black", c:"#171717", t:"#e8e8e8"}] },
+  { name:"STRU Mesh Tank Top", price:"$28", type:"tank",   back:"23",
+    colors:[{n:"Black", c:"#121212", t:"#e6e6e6"},{n:"Blue",  c:"#1d3a96", t:"#ffffff"}] },
+  { name:"STRU Shirt Jacket",  price:"$65", type:"shirt",  back:"STRU",
+    colors:[{n:"Brown", c:"#a56a3b", t:"#7c4a22"},{n:"Olive", c:"#5d6742", t:"#3f472b"}] },
+  { name:"STRU Track Jacket",  price:"$70", type:"track",  back:"STRU",
+    colors:[{n:"Black", c:"#151515", t:"#ffffff"},{n:"Navy",  c:"#14214d", t:"#ffffff"}] },
+  { name:"STRU Racing Tee",    price:"$30", type:"tee",    back:"07",
+    colors:[{n:"Red",   c:"#d3202b", t:"#ffffff"},{n:"White", c:"#efefef", t:"#d3202b"}] }
+];
+/* ==========================================================  */
+
+const FX = 'class="fx"';
+const HANGER = `<path d="M100 0V12" stroke="#9a9a9a" stroke-width="2" fill="none"/>
+  <path d="M100 12V25M100 25L50 50M100 25L150 50" stroke="#7b4a2c" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+const SHAPES = {
+  tank:{
+    sil:"M62 40L72 40L100 76L128 40L138 40C139 68 152 82 158 98L158 234Q158 238 154 238L46 238Q42 238 42 234L42 98C48 82 61 68 62 40Z",
+    silBack:"M62 40L72 40C76 60 88 64 100 64C112 64 124 60 128 40L138 40C139 68 152 82 158 98L158 234Q158 238 154 238L46 238Q42 238 42 234L42 98C48 82 61 68 62 40Z",
+    det:(b,p)=> `
+      <path class="ts" stroke-width="3.5" d="${b?'M72 40C76 60 88 64 100 64C112 64 124 60 128 40':'M72 40L100 76L128 40'}"/>
+      <path class="ts" stroke-width="3.5" d="M62 40C61 68 48 82 42 98M138 40C139 68 152 82 158 98M42 230H158"/>
+      ${b?`
+      <text x="100" y="98" text-anchor="middle" class="sc" font-size="24" fill="#fff" stroke="#d62839" stroke-width="2.5" paint-order="stroke">STRU</text>
+      <text x="100" y="172" text-anchor="middle" ${FX} font-size="84" fill="#fff" stroke="#d62839" stroke-width="3" paint-order="stroke">${p.back}</text>
+      <text x="100" y="192" text-anchor="middle" ${FX} font-size="6.5" letter-spacing="1.6" fill="#fff">FUNDADO 2026</text>
+      <text x="100" y="202" text-anchor="middle" ${FX} font-size="6.5" letter-spacing="1.6" fill="#fff">HONOR Y GLORIA</text>`:`
+      <circle cx="100" cy="96" r="7" fill="none" stroke="#fff" stroke-width="1.6"/>
+      <text x="100" y="140" text-anchor="middle" class="sc" font-size="38" fill="#fff" stroke="#d62839" stroke-width="3" paint-order="stroke">STRU</text>
+      <text x="100" y="158" text-anchor="middle" ${FX} font-size="6.5" letter-spacing="1.8" fill="#fff">ATHLETIC CLUB</text>`}`
+  },
+  tee:{
+    sil:"M70 40C78 54 90 60 100 60C110 60 122 54 130 40L174 58L190 102L160 114L158 236L42 236L40 114L10 102L26 58Z",
+    det:(b,p)=> `
+      ${b?`<path class="c" d="M70 40C80 48 90 50 100 50C110 50 120 48 130 40C122 54 110 60 100 60C90 60 78 54 70 40Z"/>`:''}
+      <path class="ts" stroke-width="5" d="${b?'M70 40C80 48 90 50 100 50C110 50 120 48 130 40':'M70 40C78 54 90 60 100 60C110 60 122 54 130 40'}"/>
+      <path class="ts" stroke-width="4" d="M12 103L40 114M188 103L160 114"/>
+      ${b?`
+      <text x="100" y="94" text-anchor="middle" class="fx t" font-size="20">STRU</text>
+      <text x="100" y="172" text-anchor="middle" class="fx t" font-size="76">${p.back}</text>`:`
+      <g transform="skewX(-8)">
+        <text x="121" y="140" text-anchor="middle" class="fx t" font-size="50">STRU</text>
+        <text x="121" y="158" text-anchor="middle" class="fx t" font-size="9" letter-spacing="3.5">RACING CLUB</text>
+        <rect x="58" y="172" width="126" height="3" class="t"/><rect x="72" y="180" width="98" height="3" class="t" opacity=".7"/>
+      </g>`}`
+  },
+  hoodie:{
+    sil:"M64 36C64 24 80 18 100 18C120 18 136 24 136 36L170 54L186 170L158 174L158 236L42 236L42 174L14 170L30 54Z",
+    det:(b,p)=> `
+      ${b?`
+      <path d="M64 36C64 30 80 26 100 26C120 26 136 30 136 36C130 58 116 66 100 66C84 66 70 58 64 36Z" fill="#000" opacity=".16"/>
+      <path d="M100 26V66" stroke="#000" opacity=".22" stroke-width="1.5"/>
+      <text x="100" y="118" text-anchor="middle" class="fx t" font-size="44">STRU</text>
+      <text x="100" y="134" text-anchor="middle" class="fx t" font-size="7" letter-spacing="3">SINCE 2026</text>`:`
+      <path d="M70 38C74 66 88 78 100 78C112 78 126 66 130 38C120 28 80 28 70 38Z" fill="#000" opacity=".42"/>
+      <path class="ts" stroke-width="2.5" d="M91 80V120M109 80V120"/>
+      <path d="M54 178L146 178L154 222L46 222Z" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="1.6"/>
+      <text x="100" y="146" text-anchor="middle" class="fx t" font-size="40">STRU</text>
+      <text x="100" y="160" text-anchor="middle" class="fx t" font-size="6.5" letter-spacing="2.6">ATHLETIC DEPT.</text>`}
+      <rect x="42" y="226" width="116" height="10" fill="#000" opacity=".22"/>
+      <path d="M14 170L42 174M186 170L158 174" stroke="#000" stroke-opacity=".28" stroke-width="5"/>`
+  },
+  shirt:{
+    sil:"M62 36L100 50L138 36L178 56L190 184L162 188L160 238L40 238L38 188L10 184L22 56Z",
+    det:(b,p)=> `
+      ${b?`
+      <path d="M30 70Q100 92 170 70" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="1.6"/>
+      <path class="c" d="M62 36L100 50L138 36L136 46L100 60L64 46Z"/>
+      <path d="M62 36L100 50L138 36L136 46L100 60L64 46Z" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="1.4"/>
+      <text x="100" y="128" text-anchor="middle" class="fx t" font-size="30" opacity=".9">STRU</text>`:`
+      <path class="c" d="M62 34L100 54L84 82L58 52Z"/><path class="c" d="M138 34L100 54L116 82L142 52Z"/>
+      <path d="M62 34L100 54L84 82L58 52ZM138 34L100 54L116 82L142 52Z" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1.4"/>
+      <path d="M100 54V238" stroke="#000" stroke-opacity=".3" stroke-width="1.5"/>
+      <g fill="#000" fill-opacity=".45"><circle cx="106" cy="100" r="2"/><circle cx="106" cy="134" r="2"/><circle cx="106" cy="168" r="2"/><circle cx="106" cy="202" r="2"/></g>
+      <path d="M52 112H86V142H52ZM114 112H148V142H114Z" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="1.5"/>
+      <text x="131" y="130" text-anchor="middle" class="fx t" font-size="9">STRU</text>`}
+      <path d="M10 184L38 188M190 184L162 188" stroke="#000" stroke-opacity=".28" stroke-width="5"/>`
+  },
+  track:{
+    sil:"M66 36L134 36L178 56L190 184L162 188L160 238L40 238L38 188L10 184L22 56Z",
+    det:(b,p)=> `
+      <path class="c" d="${b?'M68 36C80 44 120 44 132 36L132 48C120 56 80 56 68 48Z':'M68 36C80 46 120 46 132 36L132 52C120 62 80 62 68 52Z'}"/>
+      <path d="${b?'M68 36C80 44 120 44 132 36L132 48C120 56 80 56 68 48Z':'M68 36C80 46 120 46 132 36L132 52C120 62 80 62 68 52Z'}" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="1.4"/>
+      <path class="ts" stroke-width="5" d="M24 62L13 184M176 62L187 184"/>
+      <path class="ts" stroke-width="3" d="M45 188V232M155 188V232"/>
+      ${b?`
+      <text x="100" y="124" text-anchor="middle" class="fx t" font-size="32">STRU</text>`:`
+      <path class="ts" stroke-width="2" d="M100 56V238"/>
+      <text x="130" y="96" text-anchor="middle" class="fx t" font-size="10">STRU</text>`}`
+  }
+};
+
+let uid = 0;
+function svg(p, ci, side){
+  const k = SHAPES[p.type], b = side === "back", id = "g" + (uid++);
+  const sil = (b && k.silBack) ? k.silBack : k.sil;
+  return `<svg viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="${id}" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity=".28"/><stop offset=".35" stop-color="#fff" stop-opacity=".07"/>
+      <stop offset=".7" stop-color="#000" stop-opacity=".04"/><stop offset="1" stop-color="#000" stop-opacity=".3"/>
+    </linearGradient></defs>
+    <path class="c" d="${sil}"/><path d="${sil}" fill="url(#${id})"/>
+    ${k.det(b, p)}${HANGER}</svg>`;
+}
+const ink = hex => { const n = parseInt(hex.slice(1),16); return ((n>>16)*299 + (n>>8&255)*587 + (n&255)*114)/1000 > 150 ? "#111" : "#fff"; };
+const setVars = (el, col) => { el.style.setProperty("--c", col.c); el.style.setProperty("--t", col.t); };
+
+const closet = document.getElementById("closet");
+const cluster = document.getElementById("cluster");
+const state = PRODUCTS.map(() => ({ ci:0, side:"front" }));
+const items = [];
+let active = 0, sel = -1, hovering = false, timer = null;
+
+PRODUCTS.forEach((p, i) => {
+  const el = document.createElement("div");
+  el.className = "item"; el.tabIndex = 0; el.setAttribute("role","button"); el.setAttribute("aria-label", p.name);
+  const face = (side, cls) => `<div class="face ${cls}" data-side="${side}">
+      <div class="layer base">${svg(p,0,side)}</div><div class="layer over"></div></div>`;
+  const tags = p.colors.map((col, ci) => `
+    <button class="tag" type="button" data-ci="${ci}" aria-pressed="${ci===0}" aria-label="Color ${col.n}" style="--tc:${col.c};--ti:${ink(col.c)}">
+      <i class="string"></i><span class="body"><span>${col.n.toUpperCase()}</span></span></button>`).join("");
+  el.innerHTML = `<div class="card">${face("front","fr")}${face("back","bk")}</div><div class="tags">${tags}</div>`;
+  el.querySelectorAll(".layer.base").forEach(l => setVars(l, p.colors[0]));
+  el.addEventListener("click", e => { if (e.target.closest(".tag")) return; if (sel !== i) select(i); });
+  el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (sel !== i) select(i); } });
+  el.querySelectorAll(".tag").forEach(t => t.addEventListener("click", e => { e.stopPropagation(); setColor(i, +t.dataset.ci); }));
+  cluster.appendChild(el); items.push(el);
+});
+
+function waLink(i){
+  const p = PRODUCTS[i], col = p.colors[state[i].ci].n;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=` + encodeURIComponent(`Hi STRU, is the ${p.name} (${col}) available? ${p.price}`);
+}
+function render(){
+  items.forEach((el, k) => {
+    el.classList.toggle("open", k === active);
+    el.classList.toggle("back", k === sel && state[k].side === "back");
+    el.tabIndex = 0;
+  });
+  const p = PRODUCTS[active], col = p.colors[state[active].ci];
+  document.getElementById("cap").textContent = `${p.name} \u2014 ${col.n}`;
+  document.getElementById("title").textContent = p.name;
+  document.getElementById("pill").href = waLink(active);
+  document.getElementById("link").href = waLink(active);
+  const bk = state[active].side === "back";
+  document.getElementById("bFront").setAttribute("aria-pressed", !bk);
+  document.getElementById("bBack").setAttribute("aria-pressed", bk);
+  items[active].querySelectorAll(".tag").forEach((t, ci) => t.setAttribute("aria-pressed", ci === state[active].ci));
+}
+function setActive(i){ if (i === active) return; active = i; render(); }
+
+function select(i){
+  sel = (i + PRODUCTS.length) % PRODUCTS.length; active = sel;
+  closet.classList.add("detail"); render(); stopAuto();
+}
+function exitDetail(){
+  if (sel < 0) return;
+  sel = -1; closet.classList.remove("detail");
+  state.forEach(s => s.side = "front"); render(); startAuto();
+}
+function setSide(side){ if (sel < 0) return; state[sel].side = side; render(); }
+
+function setColor(i, ci){
+  if (state[i].ci === ci) return;
+  const p = PRODUCTS[i], col = p.colors[ci]; state[i].ci = ci;
+  items[i].querySelectorAll(".face").forEach(f => {
+    const side = f.dataset.side, base = f.querySelector(".base"), over = f.querySelector(".over");
+    over.classList.remove("wipe"); over.style.transition = "none";
+    over.innerHTML = svg(p, ci, side); setVars(over, col);
+    void over.offsetWidth; over.style.transition = ""; over.classList.add("wipe");
+    setTimeout(() => {
+      base.innerHTML = svg(p, ci, side); setVars(base, col);
+      over.style.transition = "none"; over.classList.remove("wipe");
+    }, 780);
+  });
+  render();
+}
+
+/* hover: the garment under the pointer swings open, the rest turn edge-on */
+closet.addEventListener("pointermove", e => {
+  if (sel >= 0 || e.pointerType === "touch") return;
+  const r = cluster.getBoundingClientRect(), row = document.getElementById("row").getBoundingClientRect();
+  if (e.clientY < row.top - 20 || e.clientY > row.bottom) return;
+  hovering = true;
+  const x = Math.min(Math.max((e.clientX - r.left) / r.width, 0), .999);
+  setActive(Math.floor(x * PRODUCTS.length));
+});
+closet.addEventListener("pointerleave", () => { hovering = false; });
+
+/* idle autoplay, like the demo video */
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function startAuto(){ stopAuto(); if (reduce) return; timer = setInterval(() => { if (!hovering && sel < 0) setActive((active + 1) % PRODUCTS.length); }, 2300); }
+function stopAuto(){ clearInterval(timer); }
+
+document.getElementById("prev").onclick = () => select(sel - 1);
+document.getElementById("next").onclick = () => select(sel + 1);
+document.getElementById("close").onclick = exitDetail;
+document.getElementById("bFront").onclick = () => setSide("front");
+document.getElementById("bBack").onclick = () => setSide("back");
+document.addEventListener("click", e => {
+  if (sel >= 0 && !e.target.closest(".item,.info,.nav,.x")) exitDetail();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") exitDetail();
+  if (e.key === "ArrowRight") sel >= 0 ? select(sel + 1) : setActive((active + 1) % PRODUCTS.length);
+  if (e.key === "ArrowLeft")  sel >= 0 ? select(sel - 1) : setActive((active + PRODUCTS.length - 1) % PRODUCTS.length);
+});
+
+render(); startAuto();
+</script>
+</body>
+</html>
