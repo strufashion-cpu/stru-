@@ -26,7 +26,7 @@
   header{padding:30px 0 0;text-align:center}
   .brand{font-weight:900;font-stretch:125%;font-size:20px;letter-spacing:.06em}
   main{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:40px}
-
+ 
   .closet{position:relative;width:100%}
   .rail{
     position:absolute;top:0;left:9%;right:9%;height:3px;border-radius:3px;
@@ -35,11 +35,11 @@
   .rail::before,.rail::after{content:"";position:absolute;top:-3px;width:1px;height:12px;background:#aaa}
   .rail::before{left:0}.rail::after{right:0}
   .detail .rail{opacity:0}
-
+ 
   .row{position:relative;display:flex;justify-content:center;perspective:1500px;perspective-origin:50% 25%;height:calc(var(--cw)*1.38);transition:height .95s var(--ease)}
   .detail .row{height:calc(var(--cw)*1.8)}
   .cluster{display:flex;align-items:flex-start;height:100%}
-
+ 
   .item{
     position:relative;width:var(--closed);height:100%;cursor:pointer;outline:none;
     transition:width .95s var(--ease),filter .8s,opacity .8s;
@@ -48,7 +48,7 @@
   .detail .item.open{width:var(--sel);z-index:3}
   .detail .item:not(.open){filter:blur(9px);opacity:.55}
   .item:focus-visible .card{outline:2px solid #111;outline-offset:6px}
-
+ 
   .card{
     position:absolute;left:50%;top:0;width:var(--cw);height:calc(var(--cw)*1.25);margin-left:calc(var(--cw)/-2);
     transform-origin:50% 0;transform-style:preserve-3d;
@@ -64,16 +64,14 @@
   .layer svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 14px 12px rgba(0,0,0,.14))}
   .layer img{width:100%;height:100%;display:block;object-fit:contain;object-position:50% 0;
     filter:drop-shadow(0 14px 12px rgba(0,0,0,.14));user-select:none;-webkit-user-drag:none}
-  .layer .hg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
-  .layer .hg.top{z-index:2}
-  .layer img{position:relative;z-index:1}
+  .layer .hg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   .over{clip-path:inset(0 0 100% 0)}
   .over.wipe{clip-path:inset(0 0 0 0);transition:clip-path .75s cubic-bezier(.5,0,.2,1)}
   .c{fill:var(--c)} .t{fill:var(--t)}
   .ts{fill:none;stroke:var(--t);stroke-linecap:round;stroke-linejoin:round}
   .fx{font-family:"Archivo","Arial Black",sans-serif;font-weight:900;font-stretch:125%}
   .sc{font-family:"Pacifico","Brush Script MT",cursive}
-
+ 
   /* hanging colour tags */
   .tags{
     position:absolute;top:0;left:50%;margin-left:calc(var(--cw)*.74);display:flex;gap:7px;
@@ -96,7 +94,7 @@
   .tag[aria-pressed="true"] .body{transform:translateY(8px)}
   .tag:focus-visible .body{outline:2px solid #111;outline-offset:3px}
   @keyframes sway{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
-
+ 
   /* captions */
   .info{display:grid;margin-top:6px;min-height:110px;justify-items:center;align-items:start}
   .info>div{grid-area:1/1;display:flex;flex-direction:column;align-items:center;transition:opacity .5s}
@@ -119,7 +117,7 @@
   .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
   .link{font-size:8px;font-weight:700;letter-spacing:.14em;color:#888;text-decoration:none;border-bottom:1px solid #aaa;padding-bottom:2px}
   .link:hover{color:var(--ink);border-color:var(--ink)}
-
+ 
   .nav,.x{
     position:absolute;border:1px solid #bdbdbd;background:rgba(255,255,255,.65);color:#444;border-radius:50%;
     width:34px;height:34px;font-size:14px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .5s,background .2s;z-index:6
@@ -129,7 +127,7 @@
   .nav{top:calc(var(--cw)*.55)}
   #prev{left:2.5%}#next{right:2.5%}
   .x{top:-34px;right:3%}
-
+ 
   @media (max-width:560px){
     :root{--cw:clamp(118px,34vw,170px)}
     .tags{margin-left:calc(var(--cw)*.62)}
@@ -143,7 +141,7 @@
 </head>
 <body>
 <header><div class="brand">STRU</div></header>
-
+ 
 <main>
   <div class="closet" id="closet">
     <div class="rail" aria-hidden="true"></div>
@@ -151,7 +149,7 @@
     <button class="nav" id="prev" aria-label="Previous piece" type="button">&#8592;</button>
     <button class="nav" id="next" aria-label="Next piece" type="button">&#8594;</button>
     <button class="x" id="close" aria-label="Back to all pieces" type="button">&#215;</button>
-
+ 
     <div class="info">
       <div class="i-idle">
         <p class="cap" id="cap"></p>
@@ -168,11 +166,11 @@
     </div>
   </div>
 </main>
-
+ 
 <script>
 /* =====================  EDIT THIS PART  ===================== */
 const WHATSAPP_NUMBER = "919999999999";  // your number, country code first, no + or spaces
-
+ 
 /* ---- PHOTOS ----
    Put your photos in a folder called  photos  next to index.html.
    Name each file like this:   id-color-front.png   and   id-color-back.png
@@ -182,47 +180,58 @@ const WHATSAPP_NUMBER = "919999999999";  // your number, country code first, no 
 const USE_PHOTOS   = true;
 const PHOTO_FOLDER = "photos";
 const PHOTO_EXT    = "png";      // png, jpg or webp - must be the same for all your photos
-const HANGER = `<path d="M100 0V12" stroke="#9a9a9a" stroke-width="2" fill="none"/>
-  <path d="M100 12V26M100 26L64 112M100 26L136 112" stroke="#7b4a2c" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;    // true = draw a hanger on top of your photos (use if your photos have no hanger)
+const DRAW_HANGER  = false;     // true = draw a hanger on top of your photos (use if your photos have no hanger)
 const WHITE_BG     = false;       // true = your photos have a plain white background (it gets hidden)
                                  // false = your photos are cut out with a transparent background
-
+ 
 /* id: short name used in the photo file names
    frontOnly:true  = you only have a front photo for this piece (hides the Back button)
    type: hoodie | tank | shirt | track | tee   (only used for the drawn version)
    colors: first one shows by default. Each color is also a hanging tag you can tap.
    back: text shown on the back of the piece                                   */
 const PRODUCTS = [
+  { id:"h1", name:"STRU Hex Hoodie", price:"$00", type:"hoodie", back:"STRU",
+    colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/dots-black-front.png", back:"photos/dots-black-back.png" },
+             { n:"Cream", c:"#efe4cf", t:"#111111", front:"photos/dots-cream-front.png", back:"photos/dots-cream-back.png" },
+             { n:"Brown", c:"#4a2a1c", t:"#ffffff", front:"photos/dots-brown-front.png", back:"photos/dots-brown-back.png" } ] },
+ 
+  { id:"h2", name:"STRU Crest Zip Hoodie", price:"$00", type:"hoodie", back:"STRU",
+    colors:[ { n:"Red",   c:"#a8302a", t:"#ffffff", front:"photos/zip-red-front.png",   back:"photos/zip-red-back.png" },
+             { n:"Green", c:"#3b4a2e", t:"#ffffff", front:"photos/zip-green-front.png", back:"photos/zip-green-back.png" },
+             { n:"Teal",  c:"#2f7f8f", t:"#ffffff", front:"photos/zip-teal-front.png",  back:"photos/zip-teal-back.png" } ] }
+ 
+  /* ---- previous pieces (kept, not used right now) ----
   { id:"c1", name:"STRU Cloth 1", price:"$00", type:"hoodie", back:"STRU",
     colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/1f.png",  back:"photos/1b.png" },
              { n:"White", c:"#efefef", t:"#111111", front:"photos/1wf.png", back:"photos/1wb.png" } ] },
-
+ 
   { id:"c2", name:"STRU Cloth 2", price:"$00", type:"tank", back:"STRU",
     colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/2f.png",  back:"photos/2b.png" },
              { n:"White", c:"#efefef", t:"#111111", front:"photos/2wf.png", back:"photos/2wb.png" } ] },
-
+ 
   { id:"c3", name:"STRU Cloth 3", price:"$00", type:"shirt", back:"STRU",
     colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/3f.png",  back:"photos/3b.png" },
              { n:"White", c:"#efefef", t:"#111111", front:"photos/3wf.png", back:"photos/3wb.png" } ] },
-
+ 
   { id:"c4", name:"STRU Cloth 4", price:"$00", type:"track", back:"STRU",
     colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/4f.png",  back:"photos/4b.png" },
              { n:"White", c:"#efefef", t:"#111111", front:"photos/4wf.png", back:"photos/4wb.png" } ] },
-
+ 
   { id:"c5", name:"STRU Cloth 5", price:"$00", type:"tee", back:"STRU",
     colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/5f.png",  back:"photos/5b.png" },
              { n:"White", c:"#efefef", t:"#111111", front:"photos/5wf.png", back:"photos/5wb.png" } ] },
-
+ 
   { id:"c6", name:"STRU Cloth 6", price:"$00", type:"hoodie", back:"STRU",
     colors:[ { n:"Black", c:"#111111", t:"#ffffff", front:"photos/6f.png",  back:"photos/6b.png" },
              { n:"White", c:"#efefef", t:"#111111", front:"photos/6wf.png", back:"photos/6wb.png" } ] }
+  ---------------------------------------------------- */
 ];
 /* ==========================================================  */
-
+ 
 const FX = 'class="fx"';
 const HANGER = `<path d="M100 0V12" stroke="#9a9a9a" stroke-width="2" fill="none"/>
   <path d="M100 12V25M100 25L50 50M100 25L150 50" stroke="#7b4a2c" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
-
+ 
 const SHAPES = {
   tank:{
     sil:"M62 40L72 40L100 76L128 40L138 40C139 68 152 82 158 98L158 234Q158 238 154 238L46 238Q42 238 42 234L42 98C48 82 61 68 62 40Z",
@@ -299,7 +308,7 @@ const SHAPES = {
       <text x="130" y="96" text-anchor="middle" class="fx t" font-size="10">STRU</text>`}`
   }
 };
-
+ 
 let uid = 0;
 function svg(p, ci, side){
   const k = SHAPES[p.type], b = side === "back", id = "g" + (uid++);
@@ -319,26 +328,12 @@ function photoSrc(p, ci, side){
   const sd = (side === "back" && p.frontOnly) ? "front" : side;
   return `${PHOTO_FOLDER}/${p.id}-${col.n.toLowerCase()}-${sd}.${PHOTO_EXT}`;
 }
-/* tries several likely file names for every photo, so it works whichever way the files were uploaded */
-function variants(path){
-  const i = path.lastIndexOf("/"), f = path.slice(i + 1);
-  const dir = i >= 0 ? path.slice(0, i).replace(/^\.\//, "") : "";
-  const out = [path];
-  if (dir) out.push(`./${dir}:${f}`, `./${dir}%3A${f}`);
-  out.push(`./${f}`);
-  return [...new Set(out)];
-}
-const enc = a => encodeURIComponent(JSON.stringify(a));
-function setSrc(img, path){ const v = variants(path); img.dataset.alts = enc(v.slice(1)); img.src = v[0]; }
 function art(p, ci, side){
   const src = photoSrc(p, ci, side);
   if (!src) return svg(p, ci, side);
-  const v = variants(src);
   const st = DRAW_HANGER ? ' style="height:84%;margin-top:16%"' : "";
-  /* thin wire from the rail to the clothes: always drawn, sits behind the photo so it never doubles up */
-  const wire = DRAW_HANGER ? "" : `<svg class="hg" viewBox="0 0 200 250" aria-hidden="true"><path d="M100 0V14" stroke="#9a9a9a" stroke-width="2" fill="none"/></svg>`;
-  const hg = DRAW_HANGER ? `<svg class="hg top" viewBox="0 0 200 250" aria-hidden="true">${HANGER}</svg>` : "";
-  return `${wire}<img src="${v[0]}" alt="" draggable="false"${st} data-alts="${enc(v.slice(1))}" data-p="${PRODUCTS.indexOf(p)}" data-ci="${ci}" data-side="${side}" onload="cutout(this)" onerror="photoFail(this)">${hg}`;
+  const hg = DRAW_HANGER ? `<svg class="hg" viewBox="0 0 200 250" aria-hidden="true">${HANGER}</svg>` : "";
+  return `<img src="${src}" alt="" draggable="false"${st} data-p="${PRODUCTS.indexOf(p)}" data-ci="${ci}" data-side="${side}" onload="cutout(this)" onerror="photoFail(this)">${hg}`;
 }
 /* turns the white background of a photo transparent (only the white that touches the edges) */
 function cutout(img){
@@ -371,23 +366,21 @@ function cutout(img){
 }
 function photoFail(img){
   const d = img.dataset, p = PRODUCTS[d.p];
-  const alts = JSON.parse(decodeURIComponent(d.alts || "%5B%5D"));
-  if (alts.length){ const n = alts.shift(); d.alts = enc(alts); img.src = n; return; }   // try the next file name
   if (+d.ci > 0 && !d.fb){                       // this color has no photo yet: show the first color's photo instead
     d.fb = "1"; const alt = photoSrc(p, 0, d.side);
-    if (alt){ setSrc(img, alt); return; }
+    if (alt){ img.src = alt; return; }
   }
   img.outerHTML = svg(p, +d.ci, d.side);
 }
 const ink = hex => { const n = parseInt(hex.slice(1),16); return ((n>>16)*299 + (n>>8&255)*587 + (n&255)*114)/1000 > 150 ? "#111" : "#fff"; };
 const setVars = (el, col) => { el.style.setProperty("--c", col.c); el.style.setProperty("--t", col.t); };
-
+ 
 const closet = document.getElementById("closet");
 const cluster = document.getElementById("cluster");
 const state = PRODUCTS.map(() => ({ ci:0, side:"front" }));
 const items = [];
 let active = 0, sel = -1, hovering = false, timer = null;
-
+ 
 PRODUCTS.forEach((p, i) => {
   const el = document.createElement("div");
   el.className = "item"; el.tabIndex = 0; el.setAttribute("role","button"); el.setAttribute("aria-label", p.name);
@@ -403,7 +396,7 @@ PRODUCTS.forEach((p, i) => {
   el.querySelectorAll(".tag").forEach(t => t.addEventListener("click", e => { e.stopPropagation(); setColor(i, +t.dataset.ci); }));
   cluster.appendChild(el); items.push(el);
 });
-
+ 
 function waLink(i){
   const p = PRODUCTS[i], col = p.colors[state[i].ci].n;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=` + encodeURIComponent(`Hi STRU, is the ${p.name} (${col}) available? ${p.price}`);
@@ -426,7 +419,7 @@ function render(){
   items[active].querySelectorAll(".tag").forEach((t, ci) => t.setAttribute("aria-pressed", ci === state[active].ci));
 }
 function setActive(i){ if (i === active) return; active = i; render(); }
-
+ 
 function select(i){
   sel = (i + PRODUCTS.length) % PRODUCTS.length; active = sel;
   closet.classList.add("detail"); render(); stopAuto();
@@ -437,7 +430,7 @@ function exitDetail(){
   state.forEach(s => s.side = "front"); render(); startAuto();
 }
 function setSide(side){ if (sel < 0) return; state[sel].side = side; render(); }
-
+ 
 function setColor(i, ci){
   if (state[i].ci === ci) return;
   const p = PRODUCTS[i], col = p.colors[ci]; state[i].ci = ci;
@@ -453,7 +446,7 @@ function setColor(i, ci){
   });
   render();
 }
-
+ 
 /* hover: the garment under the pointer swings open, the rest turn edge-on */
 closet.addEventListener("pointermove", e => {
   if (sel >= 0 || e.pointerType === "touch") return;
@@ -464,12 +457,12 @@ closet.addEventListener("pointermove", e => {
   setActive(Math.floor(x * PRODUCTS.length));
 });
 closet.addEventListener("pointerleave", () => { hovering = false; });
-
+ 
 /* idle autoplay, like the demo video */
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 function startAuto(){ stopAuto(); if (reduce) return; timer = setInterval(() => { if (!hovering && sel < 0) setActive((active + 1) % PRODUCTS.length); }, 2300); }
 function stopAuto(){ clearInterval(timer); }
-
+ 
 document.getElementById("prev").onclick = () => select(sel - 1);
 document.getElementById("next").onclick = () => select(sel + 1);
 document.getElementById("close").onclick = exitDetail;
@@ -483,7 +476,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowRight") sel >= 0 ? select(sel + 1) : setActive((active + 1) % PRODUCTS.length);
   if (e.key === "ArrowLeft")  sel >= 0 ? select(sel - 1) : setActive((active + PRODUCTS.length - 1) % PRODUCTS.length);
 });
-
+ 
 render(); startAuto();
 </script>
 </body>
